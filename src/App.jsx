@@ -1,27 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sprout, Briefcase, Sun, ArrowRight, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
+import FarmerWizard from './FarmerWizard'; // Import the new wizard
 
 export default function App() {
+  const [view, setView] = useState('home'); // This controls which page is shown
+
+  // If view is 'farmer', show the Wizard instead of the landing page
+  if (view === 'farmer') {
+    return <FarmerWizard onBack={() => setView('home')} />;
+  }
+
   return (
     <div className="min-h-screen">
-      {/* 1. NAVIGATION BAR */}
       <nav className="flex justify-between items-center px-10 py-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" onClick={() => setView('home')} style={{cursor: 'pointer'}}>
           <div className="bg-[#2D6A4F] p-2 rounded-xl shadow-lg shadow-emerald-200">
             <Sun className="text-white w-6 h-6" />
           </div>
           <span className="text-2xl font-extrabold tracking-tight text-[#1B4332]">AgroHelio</span>
-        </div>
-        <div className="hidden md:flex gap-8 text-sm font-semibold text-slate-600">
-          <a href="#" className="hover:text-emerald-700 transition">How it Works</a>
-          <a href="#" className="hover:text-emerald-700 transition">Government Schemes</a>
         </div>
         <button className="bg-white border border-slate-200 px-6 py-2.5 rounded-full font-bold text-sm shadow-sm hover:shadow-md transition-all active:scale-95">
           Sign In
         </button>
       </nav>
 
-      {/* 2. HERO SECTION */}
       <main className="max-w-7xl mx-auto px-6 pt-16 pb-24">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-4 py-1.5 rounded-full mb-6">
@@ -38,11 +40,13 @@ export default function App() {
           </p>
         </div>
 
-        {/* 3. DUAL ROLE CARDS */}
         <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
           
-          {/* FARMER CARD */}
-          <div className="group relative bg-white border border-slate-100 p-10 rounded-[48px] shadow-xl shadow-emerald-900/5 hover:border-emerald-500 transition-all duration-500 cursor-pointer">
+          {/* FARMER CARD - Added onClick here */}
+          <div 
+            onClick={() => setView('farmer')}
+            className="group relative bg-white border border-slate-100 p-10 rounded-[48px] shadow-xl shadow-emerald-900/5 hover:border-emerald-500 transition-all duration-500 cursor-pointer"
+          >
             <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
               <Sprout className="text-emerald-600 w-8 h-8" />
             </div>
@@ -88,7 +92,6 @@ export default function App() {
         </div>
       </main>
 
-      {/* FOOTER */}
       <footer className="text-center py-12 border-t border-slate-100 mt-20">
         <p className="text-slate-400 text-sm font-medium">© 2024 AgroHelio Intelligence. All Rights Reserved.</p>
       </footer>
