@@ -1,3 +1,9 @@
+const [lang, setLang] = useState('en');
+
+const text = {
+  en: { title: "Your Water Pump", sub: "Tell us about your pump", next: "Next Step" },
+  hi: { title: "आपका पानी का पंप", sub: "अपने पंप के बारे में हमें बताएं", next: "अगला कदम" }
+};
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Droplets, Zap, CheckCircle } from 'lucide-react';
 import FarmerResults from './FarmerResults';
