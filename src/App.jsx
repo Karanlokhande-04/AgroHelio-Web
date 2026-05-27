@@ -7,7 +7,7 @@ export default function App() {
   const [view, setView] = useState('home');
 
   if (view === 'farmer') return <FarmerWizard onBack={() => setView('home')} />;
-  if (view === 'business') return <AnalysisMap />; // Switch to the Map view
+  if (view === 'business') return <AnalysisMap onBack={() => setView('home')} />;
 
   return (
     <div className="min-h-screen bg-[#F8FAF5]">
