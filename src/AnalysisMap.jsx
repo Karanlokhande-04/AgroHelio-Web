@@ -1,47 +1,30 @@
-import React, { useEffect } from 'react';
-import { Sun, Zap, Thermometer, Cloud, ArrowLeft, Download, Layers } from 'lucide-react';
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
+import { Sun, Zap, Cloud, Download } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default Leaflet marker icon configurations in Next.js/Vercel environments
+import L from 'leaflet';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 export default function AnalysisMap({ onBack }) {
-  useEffect(() => {
-    // This looks for the Map library we loaded in index.html
-    const timer = setTimeout(() => {
-      if (window.L && !window.mapInstance) {
-        window.mapInstance = window.L.map('map-id', { zoomControl: false }).setView([19.0760, 72.8777], 13);
-        
-        // Google Satellite Hybrid Layer (Real World Professional Look)
-        window.L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
-          maxZoom: 20,
-          subdomains:['mt0','mt1','mt2','mt3']
-        }).addTo(window.mapInstance);
-
-        // Add a Marker
-        window.L.marker([19.0760, 72.8777]).addTo(window.mapInstance)
-          .bindPopup('<b>Target Site A</b><br>Solar Score: 87%').openPopup();
-
-        // Add Geoman Drawing Tools
-        if (window.mapInstance.pm) {
-          window.mapInstance.pm.addControls({
-            position: 'topright',
-            drawCircleMarker: false,
-            rotateMode: false,
-          });
-        }
-      }
-    }, 1000);
-
-    return () => {
-      if (window.mapInstance) {
-        window.mapInstance.remove();
-        window.mapInstance = null;
-      }
-      clearTimeout(timer);
-    };
-  }, []);
+  // Center coordinates (Currently set to Mumbai coordinates from your sample code)
+  const position = [19.0760, 72.8777];
 
   return (
-    <div className="flex h-full bg-[#0B0F1A] text-white overflow-hidden">
+    <div className="flex h-full bg-[#0B0F1A] text-white overflow-hidden w-full absolute inset-0">
+      
       {/* SIDEBAR */}
-      <div className="w-80 bg-[#111827] border-r border-slate-800 p-6 flex flex-col shadow-2xl z-10 overflow-y-auto">
+      <div className="w-80 bg-[#111827] border-r border-slate-800 p-6 flex flex-col shadow-2xl z-[1000] overflow-y-auto">
         <div className="mb-8">
           <div className="flex justify-between items-end mb-2">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Efficiency Score</span>
@@ -71,7 +54,7 @@ export default function AnalysisMap({ onBack }) {
           <div className="flex items-center gap-2 text-blue-400 mb-2 font-bold text-xs uppercase">
              <Zap size={14} /> AI Engine
           </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
+          <p className="text-[11px] text-slate-400 leading-relaxed">
             Site detected with high PV potential. Minimal shading from surrounding structures. 
           </p>
         </div>
@@ -82,15 +65,42 @@ export default function AnalysisMap({ onBack }) {
       </div>
 
       {/* MAP AREA */}
-      <div className="flex-1 relative">
-        <div id="map-id" className="absolute inset-0 z-0 h-full w-full"></div>
+      <div className="flex-1 relative h-full w-full">
+        <MapContainer 
+          center={position} 
+          zoom={13} 
+          zoomControl={false}
+          className="h-full w-full z-0"
+        >
+          {/* Google Satellite Hybrid Map Layer */}
+          <TileLayer
+            url="https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
+            maxZoom={20}
+            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+            attribution="&copy; Google Maps"
+          />
+
+          <Marker position={position}>
+            <Popup>
+              <div className="text-slate-900">
+                <b className="font-bold text-sm">Target Site A</b><br />
+                <span className="text-xs text-emerald-600 font-semibold">Solar Score: 87%</span>
+              </div>
+            </Popup>
+          </Marker>
+
+          <ZoomControl position="bottomright" />
+        </MapContainer>
+
+        {/* Map Type Controls overlay */}
         <div className="absolute top-6 left-6 z-[1000]">
-           <div className="bg-[#111827]/80 backdrop-blur-md p-2 rounded-xl border border-slate-700 flex gap-2">
-              <button className="px-4 py-2 bg-blue-600 text-[10px] font-black uppercase rounded-lg">Satellite</button>
-              <button className="px-4 py-2 text-slate-400 text-[10px] font-black uppercase">Terrain</button>
+           <div className="bg-[#111827]/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-800 flex gap-1 shadow-xl">
+              <button className="px-4 py-2 bg-blue-600 text-[10px] font-black uppercase rounded-lg tracking-wider text-white">Satellite</button>
+              <button className="px-4 py-2 text-slate-400 text-[10px] font-black uppercase tracking-wider hover:text-white transition">Terrain</button>
            </div>
         </div>
       </div>
+
     </div>
   );
 }
