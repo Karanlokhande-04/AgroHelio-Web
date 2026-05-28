@@ -7,17 +7,30 @@ export default function Login({ onLogin, onSwitch }) {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      alert(error.message);
-    } else {
-      // Get the role from the user's metadata
-      const userRole = data.user.user_metadata.role || 'farmer';
-      onLogin(userRole);
+    if (!email || !password) {
+      alert("Please fill in all fields.");
+      return;
     }
-    setLoading(false);
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
+
+      if (error) {
+        alert(error.message);
+      } else {
+        // Safe check using optional chaining (?.) prevents crashes if user_metadata is empty
+        const userRole = data?.user?.user_metadata?.role || 'farmer';
+        onLogin(userRole);
+      }
+    } catch (err) {
+      alert("An unexpected application error occurred.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,16 +39,27 @@ export default function Login({ onLogin, onSwitch }) {
         <h2 className="text-3xl font-black text-center text-slate-900 mb-8">Sign In</h2>
         
         <div className="space-y-4">
-          <input type="email" placeholder="Email" className="w-full p-4 bg-slate-50 border rounded-2xl" 
-            onChange={(e) => setEmail(e.target.value)} />
-          <input type="password" placeholder="Password" className="w-full p-4 bg-slate-50 border rounded-2xl" 
-            onChange={(e) => setPassword(e.target.value)} />
+          {/* Added value property to ensure true state control */}
+          <input 
+            type="email" 
+            placeholder="Email" 
+            value={email}
+            className="w-full p-4 bg-slate-50 border rounded-2xl text-black outline-none focus:ring-2 focus:ring-emerald-500" 
+            onChange={(e) => setEmail(e.target.value)} 
+          />
+          <input 
+            type="password" 
+            placeholder="Password" 
+            value={password}
+            className="w-full p-4 bg-slate-50 border rounded-2xl text-black outline-none focus:ring-2 focus:ring-emerald-500" 
+            onChange={(e) => setPassword(e.target.value)} 
+          />
         </div>
 
         <button 
           onClick={handleLogin}
           disabled={loading}
-          className="w-full mt-8 bg-slate-900 text-white py-5 rounded-2xl font-black shadow-xl"
+          className="w-full mt-8 bg-slate-900 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-slate-800 transition disabled:opacity-50"
         >
           {loading ? 'Verifying...' : 'Login'}
         </button>
