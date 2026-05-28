@@ -1,14 +1,61 @@
 import React, { useState } from 'react';
 import { Sun, Mail, Lock, ArrowRight, Shield } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+
+// 1. Initialize your Supabase connection
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://your-project.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "your-anon-key";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Login({ onLogin, onSwitch }) {
   const [role, setRole] = useState('farmer');
+  
+  // 2. Track inputs, loading animations, and backend error feedback
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // 3. Process backend verification logic securely
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevents accidental page routing reloads
+    
+    if (!email || !password) {
+      setErrorMsg('Please enter both your email address and password.');
+      return;
+    }
+
+    setLoading(false);
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
+      // Authenticate directly against the Supabase DB Engine
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (error) {
+        // If wrong details are provided, catch the message and stop access
+        setErrorMsg(error.message);
+      } else {
+        // SUCCESS: Hand over credentials and matching user configuration profiles
+        onLogin(role, data.user);
+      }
+    } catch (err) {
+      setErrorMsg('A database connectivity error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-[40px] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100">
         
-        <div className="p-10">
+        {/* Wrap inputs in a form submission container to handle Enter key logs */}
+        <form onSubmit={handleSubmit} className="p-10">
 
           <div className="flex justify-center mb-8">
             <div className="bg-emerald-600 p-3 rounded-2xl shadow-lg">
@@ -26,8 +73,8 @@ export default function Login({ onLogin, onSwitch }) {
 
           {/* Role Toggle */}
           <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-8">
-
             <button
+              type="button"
               onClick={() => setRole('farmer')}
               className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition ${
                 role === 'farmer'
@@ -39,6 +86,7 @@ export default function Login({ onLogin, onSwitch }) {
             </button>
 
             <button
+              type="button"
               onClick={() => setRole('business')}
               className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition ${
                 role === 'business'
@@ -48,44 +96,50 @@ export default function Login({ onLogin, onSwitch }) {
             >
               Business
             </button>
-
           </div>
+
+          {/* Dynamic Error Status Alert */}
+          {errorMsg && (
+            <div className="mb-6 bg-red-50 text-red-600 text-xs p-4 rounded-2xl border border-red-100 font-semibold leading-relaxed">
+              {errorMsg}
+            </div>
+          )}
 
           <div className="space-y-4">
-
+            {/* Email Input with full event listener data binding */}
             <div className="relative">
-              <Mail
-                className="absolute left-4 top-4 text-slate-300"
-                size={20}
-              />
-
+              <Mail className="absolute left-4 top-4 text-slate-300" size={20} />
               <input
                 type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email Address"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 text-black transition"
               />
             </div>
 
+            {/* Password Input with full event listener data binding */}
             <div className="relative">
-              <Lock
-                className="absolute left-4 top-4 text-slate-300"
-                size={20}
-              />
-
+              <Lock className="absolute left-4 top-4 text-slate-300" size={20} />
               <input
                 type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 text-black transition"
               />
             </div>
-
           </div>
 
+          {/* The form submit action handles database cross-checking safely */}
           <button
-            onClick={() => onLogin(role)}
-            className="w-full mt-8 bg-slate-900 text-white py-5 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 transition flex items-center justify-center gap-2"
+            type="submit"
+            disabled={loading}
+            className="w-full mt-8 bg-slate-900 text-white py-5 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 transition flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            Sign In <ArrowRight size={20} />
+            {loading ? 'Verifying Credentials...' : 'Sign In'} <ArrowRight size={20} />
           </button>
 
           {/* REGISTER LINK */}
@@ -99,7 +153,7 @@ export default function Login({ onLogin, onSwitch }) {
             </span>
           </p>
 
-        </div>
+        </form>
 
         <div className="bg-slate-50 p-4 flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
           <Shield size={12} /> 256-bit SSL Encryption Active
